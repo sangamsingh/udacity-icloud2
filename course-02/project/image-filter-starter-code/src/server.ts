@@ -1,6 +1,7 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 import {filterImageFromURL, deleteLocalFiles} from './util/util';
+import fs from 'fs';
 
 (async () => {
 
@@ -9,9 +10,40 @@ import {filterImageFromURL, deleteLocalFiles} from './util/util';
 
   // Set the network port
   const port = process.env.PORT || 8082;
-  
+
   // Use the body parser middleware for post requests
   app.use(bodyParser.json());
+
+  app.get("/filteredimage/", async(req, res) => {
+
+    //console.log("Parameter: "+req.query.image_url )
+    var url = req.query.image_url
+    console.log("Processing URL Parameter: "+url)
+    if (url == null || url.length <= 0 ) {
+      console.log("Invalid URL")
+      res.send("Invalid URL")
+      return
+    }
+
+    filterImageFromURL(url).then(function(success){
+      console.log("Success downloading file = "+success)
+        let files_to_delete = [success]
+        //console.log(typeof success)
+        fs.readFile(success, function(err, data) {
+          if(err) {
+            console.log("Reading file error :"+err)
+          }
+          //console.log("Data : "+data)
+          res.send(data)
+          deleteLocalFiles(files_to_delete)
+        })
+      }, function(error) {
+        //deleteLocalFiles(files)
+        console.log("Error = "+error);
+      })
+
+
+  });
 
   // @TODO1 IMPLEMENT A RESTFUL ENDPOINT
   // GET /filteredimage?image_url={{URL}}
@@ -30,13 +62,13 @@ import {filterImageFromURL, deleteLocalFiles} from './util/util';
   /**************************************************************************** */
 
   //! END @TODO1
-  
+
   // Root Endpoint
   // Displays a simple message to the user
   app.get( "/", async ( req, res ) => {
     res.send("try GET /filteredimage?image_url={{}}")
   } );
-  
+
 
   // Start the Server
   app.listen( port, () => {
