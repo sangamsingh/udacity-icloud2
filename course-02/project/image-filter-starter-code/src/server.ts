@@ -14,13 +14,14 @@ import fs from 'fs';
   // Use the body parser middleware for post requests
   app.use(bodyParser.json());
 
-  app.get("/filteredimage/", async(req, res) => {
+  app.get("/filteredimage/", async( req:Request,  res:Response) => {
 
     //console.log("Parameter: "+req.query.image_url )
     var url = req.query.image_url
     console.log("Processing URL Parameter: "+url)
     if (url == null || url.length <= 0 ) {
       console.log("Invalid URL")
+      res.status(422)
       res.send("Invalid URL")
       return
     }
@@ -34,12 +35,14 @@ import fs from 'fs';
             console.log("Reading file error :"+err)
           }
           //console.log("Data : "+data)
+          res.status(200)
           res.send(data)
           deleteLocalFiles(files_to_delete)
         })
       }, function(error) {
         //deleteLocalFiles(files)
         console.log("Error = "+error);
+        res.status(422).end()
       })
 
 
